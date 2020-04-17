@@ -18,12 +18,10 @@ const Window = struct {
         var original_termios = try os.tcgetattr(STDIN_FILENO);
         var raw = original_termios;
 
-        raw.iflag &= ~(@as(u8, os.BRKINT) | @as(u16, os.ICRNL) |
-                           @as(u8, os.INPCK) | @as(u8, os.ISTRIP) | @as(u16, os.IXON));
+        raw.iflag &= ~(@as(u16, os.BRKINT | os.ICRNL | os.INPCK | os.ISTRIP | os.IXON));
         raw.oflag &= ~(@as(u8, os.OPOST));
         raw.cflag |= (os.CS8);
-        raw.lflag &= ~(@as(u8, os.ECHO) | @as(u8, os.ICANON) |
-                           @as(u16, os.IEXTEN) | @as(u8, os.ISIG));
+        raw.lflag &= ~(@as(u16, os.ECHO | os.ICANON | os.IEXTEN | os.ISIG));
 
         // My attempt at VTIME and VMIN
         raw.cc[5] = 0;
