@@ -6,7 +6,7 @@ const ascii = std.ascii;
 
 const STDIN_FILENO = 0;
 
-// I need to figure out how to implement this
+// TODO: make this work
 //pub fn CTRL_KEY(k: u8) u8 {
 //    return ((k) & 0x1f);
 //}
@@ -29,15 +29,33 @@ const Window = struct {
 
         try os.tcsetattr(STDIN_FILENO, os.TCSA.FLUSH, raw);
 
+        if (!(os.isatty(STDIN_FILENO))) {
+            // return error
+        }
+
         return Window{
             .original = original_termios,
         };
+    }
+
+    pub fn getmax() ![2]i32 {
+        // TODO: support other platforms and provide fallback
+        var wsz: os.winsize = undefined;
+        // TODO: test for false and return error
+        _ = std.os.linux.syscall3(.ioctl, @bitCast(usize, @as(isize, 0)), os.TIOCGWINSZ, @ptrToInt(&wsz)) == 0;
+        return [2]i32{wsz.ws_col, wsz.ws_row};
+    }
+
+    test "try to get max" {
+        var hw = try getmax();
+        warn("Width: {}. Height: {}\n", .{hw[0], hw[1]});
     }
 
     pub fn end(self: Window) !void {
         try os.tcsetattr(0, os.TCSA.FLUSH, self.original);
     }
 };
+
 
 test "Window open and close" {
     var window = try Window.init();
