@@ -1,6 +1,6 @@
 const std = @import("std");
 const ascii = std.ascii;
-const print = std.debug.print;
+const print = std.debug.warn;
 
 const curses = @import("src/main.zig");
 

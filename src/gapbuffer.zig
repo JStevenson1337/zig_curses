@@ -1,5 +1,5 @@
 const std = @import("std");
-const print = std.debug.print;
+const print = std.debug.warn;
 
 const GapBuffer = struct {
     buffer: []u32,

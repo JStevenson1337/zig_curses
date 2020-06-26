@@ -1,6 +1,7 @@
 const std = @import("std");
 const os = std.os;
-const print = std.debug.print;
+const warn = std.debug.warn;
+const print = warn;
 const termios = os.termios;
 const ascii = std.ascii;
 
