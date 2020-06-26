@@ -1,0 +1,150 @@
+/src/main.zig:13:12: error: missing parameter name
+pub fn new(*Allocator) Window {
+           ^
+./src/main.zig:6:19: note: referenced here
+const Allocator = std.mem.Allocator;
+                  ^
+./src/main.zig:13:13: note: referenced here
+pub fn new(*Allocator) Window {
+            ^
+./src/main.zig:13:24: note: referenced here
+pub fn new(*Allocator) Window {
+                       ^
+./src/main.zig:4:17: note: referenced here
+const termios = os.termios;
+                ^
+./src/main.zig:4:19: note: referenced here
+const termios = os.termios;
+                  ^
+./src/main.zig:73:15: note: referenced here
+    original: termios,
+              ^
+/home/josias/git/zig-bin/lib/zig/std/os/bits/linux.zig:1699:12: note: referenced here
+    iflag: tcflag_t,
+           ^
+/home/josias/git/zig-bin/lib/zig/std/os/bits/linux.zig:1703:11: note: referenced here
+    line: cc_t,
+          ^
+/home/josias/git/zig-bin/lib/zig/std/os/bits/linux.zig:1704:10: note: referenced here
+    cc: [NCCS]cc_t,
+         ^
+/home/josias/git/zig-bin/lib/zig/std/os/bits/linux.zig:1705:13: note: referenced here
+    ispeed: speed_t,
+            ^
+./example.zig:10:19: note: referenced here
+    var w = curses.new(std.testing.allocator);
+                  ^
+./example.zig:10:27: note: referenced here
+    var w = curses.new(std.testing.allocator);
+                          ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:4:75: note: referenced here
+pub const LeakCountAllocator = @import("testing/leak_count_allocator.zig").LeakCountAllocator;
+                                                                          ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:9:30: note: referenced here
+pub var allocator_instance = LeakCountAllocator.init(&base_allocator_instance.allocator);
+                             ^
+/home/josias/git/zig-bin/lib/zig/std/testing/leak_count_allocator.zig:13:29: note: referenced here
+    pub fn init(allocator: *std.mem.Allocator) LeakCountAllocator {
+                            ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:9:48: note: referenced here
+pub var allocator_instance = LeakCountAllocator.init(&base_allocator_instance.allocator);
+                                               ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:14:35: note: referenced here
+pub var base_allocator_instance = std.heap.ThreadSafeFixedBufferAllocator.init(allocator_mem[0..]);
+                                  ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:14:43: note: referenced here
+pub var base_allocator_instance = std.heap.ThreadSafeFixedBufferAllocator.init(allocator_mem[0..]);
+                                          ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:14:74: note: referenced here
+pub var base_allocator_instance = std.heap.ThreadSafeFixedBufferAllocator.init(allocator_mem[0..]);
+                                                                         ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:14:80: note: referenced here
+pub var base_allocator_instance = std.heap.ThreadSafeFixedBufferAllocator.init(allocator_mem[0..]);
+                                                                               ^
+/home/josias/git/zig-bin/lib/zig/std/heap.zig:584:38: note: referenced here
+                        .reallocFn = realloc,
+                                     ^
+/home/josias/git/zig-bin/lib/zig/std/heap.zig:612:40: note: referenced here
+                    const result = try alloc(allocator, new_size, new_align);
+                                       ^
+/home/josias/git/zig-bin/lib/zig/std/heap.zig:585:37: note: referenced here
+                        .shrinkFn = shrink,
+                                    ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:9:55: note: referenced here
+pub var allocator_instance = LeakCountAllocator.init(&base_allocator_instance.allocator);
+                                                      ^
+/home/josias/git/zig-bin/lib/zig/std/testing/leak_count_allocator.zig:17:30: note: referenced here
+                .reallocFn = realloc,
+                             ^
+/home/josias/git/zig-bin/lib/zig/std/testing/leak_count_allocator.zig:18:29: note: referenced here
+                .shrinkFn = shrink,
+                            ^
+/home/josias/git/zig-bin/lib/zig/std/testing.zig:8:24: note: referenced here
+pub const allocator = &allocator_instance.allocator;
+                       ^
+./example.zig:10:35: note: referenced here
+    var w = curses.new(std.testing.allocator);
+                                  ^
+/home/josias/git/zig-bin/lib/zig/std/io/reader.zig:175:31: note: referenced here
+        pub fn readByte(self: Self) !u8 {
+                              ^
+./example.zig:13:26: note: referenced here
+        c = try in_stream.readByte();
+                         ^
+/home/josias/git/zig-bin/lib/zig/std/io/reader.zig:26:47: note: referenced here
+        pub fn read(self: Self, buffer: []u8) Error!usize {
+                                              ^
+/home/josias/git/zig-bin/lib/zig/std/io/reader.zig:177:38: note: referenced here
+            const amt_read = try self.read(result[0..]);
+                                     ^
+./example.zig:2:18: note: referenced here
+const ascii = std.ascii;
+                 ^
+./example.zig:15:13: note: referenced here
+        if (ascii.isCntrl(c)) {
+            ^
+./example.zig:15:18: note: referenced here
+        if (ascii.isCntrl(c)) {
+                 ^
+./example.zig:16:13: note: referenced here
+            warn("It's control! {}\r\n", .{c});
+            ^
+./example.zig:26:18: note: referenced here
+            try w.clear();
+                 ^
+/home/josias/git/zig-bin/lib/zig/std/io.zig:54:19: note: referenced here
+        .handle = getStdOutHandle(),
+                  ^
+/home/josias/git/zig-bin/lib/zig/std/io.zig:56:29: note: referenced here
+        .intended_io_mode = default_mode,
+                            ^
+./src/main.zig:9:34: note: referenced here
+const stdout = std.io.getStdOut().outStream();
+                                 ^
+./src/main.zig:113:17: note: referenced here
+        _ = try stdout.write("\x1b[2J");
+                ^
+./example.zig:34:10: note: referenced here
+    try w.end();
+         ^
+/home/josias/git/zig-bin/lib/zig/std/os.zig:4905:49: note: referenced here
+pub fn tcsetattr(handle: fd_t, optional_action: TCSA, termios_p: termios) TermiosSetError!void {
+                                                ^
+/home/josias/git/zig-bin/lib/zig/std/os.zig:4903:29: note: referenced here
+pub const TermiosSetError = TermiosGetError || error{ProcessOrphaned};
+                            ^
+/home/josias/git/zig-bin/lib/zig/std/os.zig:4905:75: note: referenced here
+pub fn tcsetattr(handle: fd_t, optional_action: TCSA, termios_p: termios) TermiosSetError!void {
+                                                                          ^
+./src/main.zig:127:15: note: referenced here
+        try os.tcsetattr(STDIN_FILENO, os.TCSA.FLUSH, self.original);
+              ^
+./src/main.zig:127:26: note: referenced here
+        try os.tcsetattr(STDIN_FILENO, os.TCSA.FLUSH, self.original);
+                         ^
+./src/main.zig:15:21: error: expected type 'src.main.Window', found 'std.os.TermiosGetError'
+        .original = try os.tcgetattr(STDIN_FILENO),
+                    ^
+./src/main.zig:72:20: note: src.main.Window declared here
+pub const Window = struct {
+                   ^
