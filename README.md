@@ -6,6 +6,7 @@ Goals:
 1. Implement simple games with it (such as porting my other ncurses games)
 2. Port https://github.com/Akuli/curses-minesweeper to zigcurses
 3. Write a `vi` or `mg` clone with a zigcurses backend
+4. Export as a C library and write an example game in C using zcurses
 
 Ideas:
 - Use Zig's `comptime` feature to enable designing user interfaces that are processed at compile time
