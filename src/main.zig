@@ -1,34 +1,49 @@
 const std = @import("std");
+
+const ascii = std.ascii;
+const io = std.io;
+const fmt = std.fmt;
 const os = std.os;
-const warn = std.debug.warn;
 const print = warn;
 const termios = os.termios;
-const ascii = std.ascii;
+const warn = std.debug.warn;
 
 const STDIN_FILENO = 0;
 const stdout = std.io.getStdOut().outStream();
 const in_stream = std.io.getStdOut().inStream();
 
-//pub fn new(allocator: *Allocator) !Window {}
+const VMIN = 5;
+const VTIME = 6;
 
 pub const Window = struct {
+    /// the saved termios that is used to restore the terminal to its original state
     original: termios,
-    height: usize,
-    width: usize,
-    buffer: []u8,
-    /// buf contains a dynamic array of slices that will be combined upon print
-    buf: std.ArrayList([]const u8),
 
-    //allocator: *std.mem.Allocator,
+    /// the height (in characters) of the window
+    height: usize,
+    /// the width (in characters) of the window
+    width: usize,
+    // an idea that is not implemented (use height and width for now)
+    //max: struct {
+    //    x: usize,
+    //    y: usize,
+    //},
+    //
+    /// buf contains a dynamic array of characters that will be combined upon print
+    buf: std.ArrayList(u8),
+
+    allocator: *std.mem.Allocator,
 
     /// init puts the window in raw mode and saves the original termios for switching back to normal mode
     pub fn init(allocator: *std.mem.Allocator) !Window {
         var window = Window{
             .original = try os.tcgetattr(STDIN_FILENO),
-            .buffer = "",
-            .buf = undefined,
+            .buf = std.ArrayList(u8).init(allocator),
+
             .height = 0,
             .width = 0,
+
+            .allocator = allocator,
         };
 
         var raw = window.original;
@@ -38,9 +53,8 @@ pub const Window = struct {
         raw.cflag |= (os.CS8);
         raw.lflag &= ~(@as(u16, os.ECHO | os.ICANON | os.IEXTEN | os.ISIG));
 
-        // My attempt at VTIME and VMIN
-        raw.cc[5] = 0;
-        raw.cc[7] = 1;
+        raw.cc[VMIN] = 0;
+        raw.cc[VTIME] = 1;
 
         try os.tcsetattr(STDIN_FILENO, os.TCSA.FLUSH, raw);
 
@@ -48,44 +62,8 @@ pub const Window = struct {
             return error.NotATTY;
         }
 
-        const arrayList = std.ArrayList([]const u8);
-
-        var what = "hello";
-        var buf = arrayList.init(allocator);
-        _ = try buf.append(what[0..]);
-        _ = try buf.append("i"[0..]);
-        print("What? {}\n", .{buf.items});
-
-        window.buf = buf;
-
-        //const wh = try getmax();
         // fill in the height and width information
         try window.updatehw();
-
-        var text = try allocator.alloc(u8, window.height * window.width);
-        //warn("{}", .{text});
-        defer allocator.free(text);
-
-        var n: usize = 0;
-        while (n < window.height) : (n += 1) {
-            print("{}", .{n});
-            text[n] = 'h';
-
-            //warn("{}", .{});
-
-            if (n % window.width == 0) {
-                text[n * window.width] = 'c';
-            }
-
-            // var i: usize = 0;
-            // while (i < window.width) : (i += 1) {
-            //     if (i == window.width) {
-            //         text[n] = '\n';
-            //     }
-            // }
-        }
-
-        print("{}", .{text});
 
         // initialize text with spaces and newlines
         //for ([]usize{ 0, 1, 2, 3, 4, 10 }) |i| {}
@@ -95,12 +73,11 @@ pub const Window = struct {
         // disable cursor
         _ = try stdout.write("\x1B[?25l");
 
-        var i: usize = 0;
-
-        while (i < window.height) {
-            _ = try stdout.write("\r\n~");
-            i += 1;
-        }
+        //var i: usize = 0;
+        //while (i < window.height) {
+        //    _ = try stdout.write("\r\n~");
+        //    i += 1;
+        //}
 
         return window;
     }
@@ -109,61 +86,60 @@ pub const Window = struct {
     pub fn updatehw(self: *Window) !void {
         // TODO: support other platforms and provide fallback
         var wsz: os.winsize = undefined;
-        // TODO: test for false and return error
-        _ = std.os.linux.syscall3(.ioctl, @bitCast(usize, @as(isize, 0)), os.TIOCGWINSZ, @ptrToInt(&wsz)) == 0;
-        //const te = [2]u32{ wsz.ws_col, wsz.ws_row };
+        // test for failure
+        if (std.os.linux.syscall3(.ioctl, @bitCast(usize, @as(isize, 0)), os.TIOCGWINSZ, @ptrToInt(&wsz)) != 0) {
+            return error.WinsizeSyscallFailure;
+        }
+
         self.height = wsz.ws_row;
         self.width = wsz.ws_col;
     }
 
-    /// setchar puts a character at a specific point in the text based on height and width
-    pub fn setchar(self: *Window, x: u32, y: u32, insert: u8) !void {
-        if (x > self.width or y > self.height) {
-            return error.InvalidRange;
-        }
+    pub fn mvprint(self: *Window, x: usize, y: usize, text: []const u8) !void {
+        var buf = try self.allocator.alloc(u8, 10); // TODO: remove allocation
+        defer self.allocator.free(buf);
+        _ = try fmt.bufPrint(buf, "\x1b[{};{}H", .{ x, y });
 
-        var newlines: usize = 0;
-        for (self.buffer) |char, i| {
-            if (newlines == y) {
-                for (self.buffer[i + 1 .. hw[1]]) |character, n| {
-                    if (character == '\n' or character == '\r') {
-                        break;
-                    }
-
-                    self.buffer[n] = insert;
-                }
-            }
-        }
+        try self.buf.appendSlice(buf);
+        try self.buf.appendSlice(text);
     }
 
-    pub fn mvprint(self: Window, x: usize, y: usize, text: []const u8) !void {
-        self.buf.append("\x1b[10;10H"[0..]);
-        self.buf.append([]u8{@as(u8, x)});
-        self.buf.append(text);
-        self.buf.append();
-        //_ = try buf.append('');
-    }
+    /// erases the buffer and clears the screen, can be expensive and cause flickering
+    pub fn clear(self: *Window) !void {
+        self.buf.deinit();
+        self.buf = std.ArrayList(u8).init(self.allocator);
 
-    pub fn clear(self: Window) !void {
         _ = try stdout.write("\x1b[2J");
         _ = try stdout.write("\x1b[H");
     }
 
+    /// lazily prints to the screen, decreasing flickering
     pub fn erase() !void {}
 
-    pub fn flush() !void {}
-
-    pub fn refresh(self: Window) !void {
-        _ = stdout.write(self.buffer);
+    pub fn flush(self: Window) !void {
+        self.buf.items;
     }
 
-    pub fn end(self: Window) !void {
+    pub fn refresh(self: Window) !void {
+        var buf = try self.allocator.alloc(u8, self.buf.items.len); // TODO: remove allocator
+        defer self.allocator.free(buf);
+
+        _ = try fmt.bufPrint(buf, "{}", .{self.buf.items});
+        _ = try stdout.write(buf);
+    }
+
+    pub fn end(self: *Window) !void {
+        // free the memory first in case the next ones fail
+        self.buf.deinit();
+
+        // clear screen
+        _ = try stdout.write("\x1b[2J");
+        _ = try stdout.write("\x1b[H");
+
         // re-enable cursor
         _ = try stdout.write("\x1B[?25h");
 
-        self.buf.deinit();
-
-        try self.clear();
+        // Restore the original termios
         try os.tcsetattr(STDIN_FILENO, os.TCSA.FLUSH, self.original);
     }
 };

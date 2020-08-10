@@ -1,38 +1,44 @@
 const std = @import("std");
-const ascii = std.ascii;
-const print = std.debug.warn;
 
-const curses = @import("src/main.zig");
+pub const curses = @import("src/main.zig");
+
+const examples = .{
+    .example = @import("examples/example.zig"),
+    .keys = @import("examples/keys.zig"),
+    .pong = @import("examples/pong.zig"),
+};
+
+const mem = std.mem;
 
 pub fn main() anyerror!void {
-    const in_stream = std.io.getStdOut().inStream();
+    const argv = std.os.argv;
 
-    var w = try curses.Window.init(std.testing.allocator);
-    while (true) {
-        var c: u8 = undefined;
-        c = try in_stream.readByte();
-
-        if (ascii.isCntrl(c)) {
-            print("It's control! {}\r\n", .{c});
-            var text = "hi\n";
-
-            try w.mvprint(0, 0, text[0..]);
-        } else {
-            print("{}\r\n", .{c});
-        }
-
-        if (ascii.isCntrl(c) and c == 'q') {
-            break;
-        }
-
-        if (c == 'c') {
-            try w.clear();
-        }
-        //warn("{}\n", .{CTRL_KEY(c)});
-        if (c == 17) {
-            break;
-        }
+    if (argv.len == 1) {
+        std.debug.warn("Usage: example NAME\n", .{});
+        return;
     }
 
-    try w.end();
+    const arg = argv[1];
+
+    var found = false;
+
+    found = try example(arg, "example", examples.example.main);
+    if (!found)
+        found = try example(arg, "pong", examples.pong.main);
+    if (!found)
+        found = try example(arg, "keys", examples.keys.main);
+
+    //if (example(arg, "pong")) {
+    //    std.debug.warn("Starting pong example\n", .{});
+    //    try @import("examples/pong.zig").main();
+    //}
+}
+
+fn example(arg: [*:0]const u8, name: []const u8, func: fn () anyerror!void) anyerror!bool {
+    if (mem.eql(u8, arg[0..name.len], name)) {
+        try func();
+        return true;
+    }
+
+    return false;
 }
