@@ -1,0 +1,22 @@
+# Zig build artifacts
+zig-cache/
+zig-out/
+zig-cache.json
+
+# Zig test artifacts
+zig-test/
+
+# Zig documentation artifacts
+zig-doc/
+
+# Zig package manager artifacts
+zig-deps/
+
+# Zig generated files
+*.h
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
